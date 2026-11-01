@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>控制台</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#fff; --line:#e6e8ec; --ink:#1d2129;
+    --muted:#7b8494; --accent:#3b82f6; --ok:#12a150; --warn:#d97706; --bad:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.55 "Microsoft YaHei UI","Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:14px}
+  header h1{font-size:16px;margin:0;font-weight:700}
+  header h1 small{color:var(--muted);font-weight:400;margin-left:6px;font-size:12px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+  .chip{background:#f2f4f7;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--muted)}
+  .chip b{color:var(--ink);font-weight:600}
+  .wrap{display:flex;gap:16px;padding:16px 18px 60px;align-items:flex-start}
+  nav{width:196px;flex:0 0 196px;position:sticky;top:70px}
+  nav a{display:block;padding:9px 12px;border-radius:8px;color:var(--ink);text-decoration:none;margin-bottom:4px;border:1px solid transparent}
+  nav a:hover{background:#eef2f7}
+  nav a.on{background:#e8f0fe;border-color:#c7dbfd;color:#1a56c4}
+  nav a span{display:block;font-size:11px;color:var(--muted)}
+  nav .sep{height:1px;background:var(--line);margin:8px 6px}
+  main{flex:1;min-width:0}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:16px;scroll-margin-top:74px}
+  section h2{margin:0 0 2px;font-size:15px}
+  section h2 code{font:11px/1 ui-monospace,monospace;color:var(--muted);background:#f2f4f7;padding:2px 6px;border-radius:4px;margin-left:6px}
+  section p.desc{margin:2px 0 14px;color:var(--muted);font-size:12.5px}
+  .group{border-top:1px dashed var(--line);padding:12px 0 4px}
+  .group:first-of-type{border-top:0;padding-top:6px}
+  .group h3{margin:0 0 8px;font-size:13px;color:#374151}
+  .row{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f1f3f5}
+  .row:last-child{border-bottom:0}
+  .row .txt{flex:1;min-width:0}
+  .row .txt b{display:block;font-weight:600;font-size:13.5px}
+  .row .txt i{display:block;font-style:normal;color:var(--muted);font-size:12px}
+  .row .ctl{flex:0 0 auto;display:flex;align-items:center;gap:8px}
+  input[type=text],input[type=number],input[type=search],textarea{font:13px/1.5 inherit;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  input[type=text]{width:220px}
+  input[type=number]{width:110px}
+  input[type=search]{width:260px}
+  textarea{width:320px;min-height:52px;resize:vertical;font-family:ui-monospace,monospace;font-size:12.5px}
+  .sw{position:relative;width:44px;height:24px;flex:0 0 44px}
+  .sw input{opacity:0;width:0;height:0;position:absolute}
+  .sw span{position:absolute;inset:0;background:#cfd6de;border-radius:999px;transition:.15s;cursor:pointer}
+  .sw span:before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+  .sw input:checked + span{background:var(--ok)}
+  .sw input:checked + span:before{transform:translateX(20px)}
+  .saved{font-size:11px;color:var(--ok);opacity:0;transition:.2s;min-width:38px}
+  .saved.on{opacity:1}
+  .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  button{font:13px inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+  button:hover{background:#f6f8fb}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.mini{padding:4px 10px;font-size:12px}
+  button.danger{color:var(--bad);border-color:#f3c9c9}
+  #out{white-space:pre-wrap;font:12px/1.5 ui-monospace,monospace;background:#0f172a;color:#d6e2f5;border-radius:10px;padding:12px;max-height:280px;overflow:auto;display:none}
+  .foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:8px 18px;font-size:12px;color:var(--muted);display:flex;gap:16px}
+  .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:#eef7f1;color:var(--ok);border:1px solid #c9e9d5}
+  .badge.vivid{background:#eef7f1;color:#0f7a3d;border-color:#c9e9d5}
+  .badge.clear{background:#eef4ff;color:#1a56c4;border-color:#cddffb}
+  .badge.fuzzy{background:#fff7e8;color:#a05a00;border-color:#f6e0bb}
+  .badge.trace{background:#f4f4f5;color:#6b7280;border-color:#e3e4e6}
+  .panel{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px;background:#fcfcfd}
+  .panel h4{margin:0 0 8px;font-size:13px;color:#374151}
+  #personaBox{width:100%;min-height:320px;font-family:inherit;font-size:13.5px;line-height:1.7}
+  .memrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f1f3f5}
+  .memrow:last-child{border-bottom:0}
+  .memrow .meta{flex:0 0 150px;font-size:11.5px;color:var(--muted);line-height:1.5}
+  .memrow .body{flex:1;min-width:0;font-size:13px;word-break:break-word}
+  .memrow .ops{flex:0 0 auto;display:flex;gap:6px}
+  .memrow .body em{font-style:normal;color:var(--muted);font-size:12px}
+  .kv{display:flex;gap:8px;align-items:center;margin-bottom:6px;font-size:13px}
+  .kv b{font-family:ui-monospace,monospace;font-size:12px;color:#374151}
+  .pre{white-space:pre-wrap;font:12.5px/1.7 ui-monospace,monospace;background:#0f172a;color:#d6e2f5;border-radius:10px;padding:12px;max-height:560px;overflow:auto}
+  .hintline{font-size:12px;color:var(--muted);margin:6px 0 10px}
+  .tools .hintline{margin:0}
+
+.think-card{border:1px solid #e6ecf3;border-radius:10px;padding:10px 12px;margin:10px 0;background:#fbfdff}
+.think-card .txt{color:#5a6b80;margin-bottom:6px}
+.think-body{margin:0;white-space:pre-wrap;word-break:break-word;font:12.5px/1.7 ui-monospace,Consolas,monospace;color:#2c3e50;max-height:560px;overflow:auto;background:#f6f9fc;border-radius:8px;padding:10px}
+.think-reply{margin-top:8px;color:#1d6f42;font:12.5px/1.6 inherit;background:#eef8f1;border-radius:8px;padding:8px 10px;white-space:pre-wrap}
+.think-zh{color:#7a5b12;background:#fff8e6;border-radius:8px;padding:7px 10px;margin-bottom:6px;font:12.5px/1.6 inherit;white-space:pre-wrap}
+.think-ask{color:#1d4e89;background:#eef4fb;border-radius:8px;padding:7px 10px;margin-bottom:6px;font:12.5px/1.6 inherit;white-space:pre-wrap}
+.think-ctx{color:#6b7c8f;background:#f4f6f9;border-radius:8px;padding:7px 10px;margin-bottom:6px;font:12px/1.6 inherit;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<header>
+  <h1>控制台 <small id="who"></small></h1>
+  <div class="chips" id="chips"></div>
+</header>
+
+<div class="wrap">
+  <nav id="nav"></nav>
+  <main>
+    <div class="tools">
+      <button onclick="act('health')">体检</button>
+      <button onclick="act('backup')">立刻备份</button>
+      <button onclick="act('decay')">跑一次衰减</button>
+      <button class="primary" onclick="load()">刷新</button>
+    </div>
+    <div id="compat"></div>
+    <div id="out"></div>
+    <div id="sections"></div>
+  </main>
+</div>
+
+<div class="foot">
+  <span>改一项就存一项，存完立刻生效，不用重启。</span>
+  <span id="tip"></span>
+</div>
+
+<script>
+const TOK = location.pathname.split('/')[2];
+const API = `/c/${TOK}/api`;
+
+function el(tag, cls, txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
+async function jget(p){ const r=await fetch(p); return r.json(); }
+async function jpost(p, body){ const r=await fetch(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json(); }
+function chip(k,v){ const c=el('div','chip',k+' '); c.appendChild(el('b',null,String(v))); return c; }
+function tip(t){ document.getElementById('tip').textContent = t; }
+function fmtDay(ts){ if(!ts) return ''; const d=new Date(ts*1000); const p=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate()); }
+
+async function load(){
+  const s = await jget(`${API}/summary`);
+  const mr = await jget(`${API}/menu`);
+  if(!s.ok || !mr.ok){ document.body.innerHTML='<p style="padding:24px">打不开：令牌不对或内核没起。</p>'; return; }
+  const m = mr.data, d = s.data;
+
+  document.getElementById('who').textContent = '角色 ' + d.character;
+  const chips = document.getElementById('chips');
+  chips.innerHTML = '';
+  chips.appendChild(chip('记忆', d.memory.total + ' 条'));
+  chips.appendChild(chip('最初', d.memory.first || 0));
+  chips.appendChild(chip('今日', '¥' + (d.today.cost || 0).toFixed(4)));
+  chips.appendChild(chip('B站', d.bili.state || 'idle'));
+  chips.appendChild(chip('自我卡', d.self_notes));
+  const h = Math.floor((d.uptime_sec||0)/3600), mi = Math.floor(((d.uptime_sec||0)%3600)/60);
+  chips.appendChild(chip('已运行', h + 'h' + mi + 'm'));
+
+  const nav = document.getElementById('nav'), main = document.getElementById('sections');
+  nav.innerHTML=''; main.innerHTML='';
+
+  addNav(nav, 'boot', '启动', '地基 · SnowLuma · 她的 QQ');
+  addNav(nav, 'self', '本体', '人设 · 称呼 · 自我卡');
+  addNav(nav, 'memory', '记忆', '她记得的事');
+  addNav(nav, 'abilities', '能力', '她会的新东西');
+  addNav(nav, 'codes', '口令', '发一串数字就开关功能');
+  addNav(nav, 'think', '思路', '她这一轮是怎么想的');
+  nav.appendChild(el('div','sep'));
+
+  main.appendChild(bootSection());
+  main.appendChild(selfSection());
+  main.appendChild(memorySection());
+  main.appendChild(abilitySection());
+  main.appendChild(codesSection());
+  main.appendChild(thinkSection());
+
+  m.forEach(l1 => {
+    addNav(nav, l1.code, l1.code + '  ' + l1.title, l1.enabled ? '已启用' : '已停用');
+    main.appendChild(l1Section(l1));
+  });
+
+  document.querySelectorAll('nav a').forEach(a => a.onclick = () => {
+    document.querySelectorAll('nav a').forEach(x=>x.classList.remove('on'));
+    a.classList.add('on');
+  });
+
+  loadBoot();
+  loadSelf();
+  loadMem();
+  loadPrivacy();
+  loadCapacity();
+  loadInject();
+  loadAbilities();
+  loadCodes();
+  loadThink();
+  loadCompat();
+
+  // 深链接：#abilities 这种，渲染完再跳（内容都是异步补上来的，太早跳会找不到）
+  if (location.hash) {
+    const id = location.hash.slice(1);
+    // 内容都是异步补上来的：先跳一次，再在 400/1200ms 各补一次（记忆有 200 多条，撑高很慢）
+    [0, 400, 1200].forEach(ms => setTimeout(() => {
+      const hit = document.getElementById(id);
+      if (hit) hit.scrollIntoView({block: 'start'});
+    }, ms));
+    document.querySelectorAll('nav a').forEach(x => x.classList.toggle('on', x.getAttribute('href') === '#' + id));
+  }
+}
+
+async function loadCompat(){
+  const box = document.getElementById('compat');
+  box.innerHTML = '';
+  const j = await jget(`${API}/compat`);
+  if (!j.ok) return;
+  const d = j.data || {};
+  if (d.ok && d.known) return;              // 正常：不打扰
+  const bar = el('div', 'compatbar');
+  bar.textContent = (d.ok ? '⚠ ' : '⛔ ') + (j.report || '宿主版本对不上');
+  bar.style.cssText = 'margin:0 0 14px;padding:10px 14px;border-radius:8px;font-size:13px;'
+    + 'background:' + (d.ok ? '#fff8e1' : '#fdecea') + ';color:' + (d.ok ? '#7a5b00' : '#8a1c1c') + ';'
+    + 'border:1px solid ' + (d.ok ? '#f0d68a' : '#f3b7b0');
+  box.appendChild(bar);
+}
+
+function addNav(nav, id, title, sub){
+  const a = el('a'); a.href = '#' + id;
+  a.appendChild(el('div', null, title));
+  a.appendChild(el('span', null, sub || ''));
+  nav.appendChild(a);
+}
+
+function l1Section(l1){
+  const sec = el('section'); sec.id = l1.code;
+  const h2 = el('h2', null, l1.code + '  ' + l1.title);
+  h2.appendChild(el('code', null, l1.plugin));
+  sec.appendChild(h2);
+  sec.appendChild(el('p','desc', l1.desc));
+  l1.groups.forEach(g => {
+    const box = el('div','group');
+    box.appendChild(el('h3', null, g.title));
+    g.items.forEach(it => box.appendChild(row(l1.plugin, it)));
+    sec.appendChild(box);
+  });
+  return sec;
+}
+
+function row(plugin, it){
+  const r = el('div','row');
+  const txt = el('div','txt');
+  txt.appendChild(el('b', null, it.label));
+  txt.appendChild(el('i', null, it.path + (it.hint ? '　·　' + it.hint : '')));
+  r.appendChild(txt);
+
+  const ctl = el('div','ctl');
+  const saved = el('div','saved', '已保存');
+  let input;
+
+  if(it.type === 'bool'){
+    const sw = el('label','sw');
+    input = document.createElement('input'); input.type='checkbox'; input.checked = !!it.value;
+    const sp = el('span');
+    sw.appendChild(input); sw.appendChild(sp);
+    ctl.appendChild(sw);
+  } else if(it.type === 'int' || it.type === 'float'){
+    input = document.createElement('input'); input.type='number';
+    if(it.type === 'float') input.step='0.01';
+    input.value = it.value ?? '';
+  } else if(it.type === 'list' || it.type === 'dict' || it.type === 'object'){
+    input = document.createElement('textarea');
+    input.value = (typeof it.value === 'string') ? it.value : JSON.stringify(it.value ?? (it.type==='list'?[]:{}), null, 2);
+  } else {
+    input = document.createElement('input'); input.type='text'; input.value = it.value ?? '';
+  }
+  if(it.type !== 'bool') ctl.appendChild(input);
+  ctl.appendChild(saved);
+  r.appendChild(ctl);
+
+  const push = async () => {
+    let v;
+    if(it.type === 'bool') v = input.checked;
+    else if(it.type === 'int') v = parseInt(input.value || '0', 10);
+    else if(it.type === 'float') v = parseFloat(input.value || '0');
+    else if(it.type === 'list' || it.type === 'dict' || it.type === 'object'){
+      try { v = JSON.parse(input.value); }
+      catch(e){ tip('这段不是合法 JSON，没存：' + e.message); return; }
+    } else v = input.value;
+    const res = await jpost(`${API}/set`, {plugin, path: it.path, value: v});
+    if(res.ok){
+      saved.classList.add('on'); setTimeout(()=>saved.classList.remove('on'), 1200);
+      if(res.effective !== undefined && String(res.effective) !== String(v)) tip('代码读到的是 ' + res.effective + '（和你写的不一样）');
+    } else tip('没存上：' + (res.error || ''));
+  };
+  input.addEventListener('change', push);
+  if(it.type === 'text' || it.type === 'string') input.addEventListener('blur', push);
+  return r;
+}
+
+/* ───────────────────────── 能力 ───────────────────────── */
+function abilitySection(){
+  const sec = el('section'); sec.id='abilities';
+  sec.appendChild(el('h2', null, '能力'));
+  sec.appendChild(el('p','desc',
+    '她会的新东西 —— 听歌、看书，以后可能是一整个虚拟社会。' +
+    '每一项本事都是一个独立的小插件；这一页只管清单和开关。'));
+  const box = el('div','panel');
+  box.appendChild(el('div','hintline','总闸关掉 = 全部静音，但每个能力原来的开关会被记下来，重新打开时原样恢复。'));
+  const line = el('div','row');
+  const txt = el('div','txt');
+  txt.appendChild(el('b', null, '能力总闸'));
+  txt.appendChild(el('i', null, '关掉之后她暂时什么额外本事都不会，但还能正常聊天'));
+  line.appendChild(txt);
+  const ctl = el('div','ctl');
+  const sw = el('label','sw');
+  const cb = document.createElement('input'); cb.type='checkbox'; cb.id='abil-master';
+  sw.appendChild(cb); sw.appendChild(el('span'));
+  ctl.appendChild(sw);
+  line.appendChild(ctl);
+  box.appendChild(line);
+  sec.appendChild(box);
+
+  const list = el('div'); list.id='abil-list'; sec.appendChild(list);
+  const packs = el('div'); packs.id='abil-packs'; sec.appendChild(packs);
+  const dw = el('div'); dw.id='abil-desk'; sec.appendChild(dw);
+  const bks = el('div'); bks.id='abil-books'; sec.appendChild(bks);
+  const foot = el('p','hintline',''); foot.id='abil-foot'; sec.appendChild(foot);
+  return sec;
+}
+
+async function loadAbilities(){
+  const wrap = document.getElementById('abil-list');
+  if(!wrap) return;
+  const res = await jget(`${API}/abilities`);
+  if(!res.ok){ wrap.textContent = '读不出来：' + (res.error||''); return; }
+  const d = res.data;
+  const cb = document.getElementById('abil-master');
+  if(cb){ cb.checked = !!d.master; cb.onchange = async () => {
+    const r = await jpost(`${API}/ability`, {action: cb.checked ? 'master_on' : 'master_off'});
+    if(r.ok){ tip(cb.checked ? '总闸开了' : '总闸关了（开关状态记着了）'); loadAbilities(); }
+    else tip('没成：' + (r.error||''));
+  }; }
+
+  wrap.innerHTML='';
+  wrap.appendChild(el('h3', null, '已装（' + d.installed.length + '）'));
+  if(!d.installed.length) wrap.appendChild(el('p','hintline','还没有装任何本事。下面「货架上」有可以装的。'));
+
+  d.installed.forEach(it => {
+    const r = el('div','row');
+    const t = el('div','txt');
+    t.appendChild(el('b', null, it.name + (it.version ? '　v' + it.version : '')));
+    t.appendChild(el('i', null, (it.desc || '没写说明') +
+      '　·　' + it.id + (it.tools && it.tools.length ? '　·　工具 ' + it.tools.length + ' 个' : '')));
+    r.appendChild(t);
+    const c = el('div','ctl');
+    const lbl = el('label','sw');
+    const inp = document.createElement('input'); inp.type='checkbox'; inp.checked = !!it.enabled;
+    lbl.appendChild(inp); lbl.appendChild(el('span'));
+    c.appendChild(lbl);
+    if(it.broken) c.appendChild(el('span','hintline','装坏了'));
+    const rm = el('button','mini','卸下来');
+    rm.onclick = async () => {
+      if(!confirm('把「' + it.name + '」卸下来？（会挪到 abilities/_removed，能装回去）')) return;
+      const rr = await jpost(`${API}/ability`, {action:'uninstall', id: it.id});
+      if(rr.ok){ tip('卸下来了，重启后生效'); loadAbilities(); } else tip('没卸成：' + (rr.error||''));
+    };
+    c.appendChild(rm);
+    r.appendChild(c);
+    inp.onchange = async () => {
+      const rr = await jpost(`${API}/ability`, {action: inp.checked ? 'on' : 'off', id: it.id});
+      if(rr.ok) tip(inp.checked ? '「' + it.name + '」打开了' : '「' + it.name + '」关掉了');
+      else { tip('没成：' + (rr.error||'')); inp.checked = !inp.checked; }
+    };
+    wrap.appendChild(r);
+  });
+
+  const pw = document.getElementById('abil-packs');
+  pw.innerHTML='';
+  if(d.packs && d.packs.length){
+    pw.appendChild(el('h3', null, '货架上（' + d.packs.length + '）'));
+    d.packs.forEach(it => {
+      const r = el('div','row');
+      const t = el('div','txt');
+      t.appendChild(el('b', null, it.name));
+      t.appendChild(el('i', null, (it.desc||'') + '　·　' + it.id));
+      r.appendChild(t);
+      const c = el('div','ctl');
+      const add = el('button','mini','装上');
+      add.onclick = async () => {
+        const rr = await jpost(`${API}/ability`, {action:'install', id: it.id});
+        if(rr.ok){ tip('装好了，重启后生效'); loadAbilities(); } else tip('没装成：' + (rr.error||''));
+      };
+      c.appendChild(add);
+      r.appendChild(c);
+      pw.appendChild(r);
+    });
+  }
+
+  const dw = document.getElementById('abil-desk');
+  dw.innerHTML='';
+  const dk = d.desk || {};
+  if((dk.books && dk.books.length) || (dk.pending && dk.pending.length)){
+    dw.appendChild(el('h3', null, '写作：桌上的本子（' + (dk.books||[]).length + ' 本）'));
+    (dk.pending||[]).forEach(q => {
+      const r = el('div','row');
+      const t = el('div','txt');
+      t.appendChild(el('b', null, '《' + q.title + '》想从 ' + q.now + ' 字提到 ' + q.want + ' 字'));
+      t.appendChild(el('i', null, q.why || '没写理由'));
+      r.appendChild(t);
+      const c = el('div','ctl');
+      const inp = document.createElement('input');
+      inp.type='number'; inp.value = q.want; inp.style.width='90px';
+      const ok = el('button','mini','批准');
+      ok.onclick = async () => {
+        const rr = await jpost(`${API}/ability`, {action:'desk_limit', book:q.slug, limit:Number(inp.value)});
+        if(rr.ok){ tip('上限改成 ' + inp.value); loadAbilities(); } else tip('没改成：' + (rr.error||''));
+      };
+      const no = el('button','mini','驳回');
+      no.onclick = async () => {
+        const rr = await jpost(`${API}/ability`, {action:'desk_reject', book:q.slug});
+        if(rr.ok){ tip('驳回了'); loadAbilities(); } else tip('没成：' + (rr.error||''));
+      };
+      c.appendChild(inp); c.appendChild(ok); c.appendChild(no);
+      r.appendChild(c); dw.appendChild(r);
+    });
+    (dk.books||[]).forEach(b => {
+      const r = el('div','row');
+      const t = el('div','txt');
+      const vis = b.visibility==='private' ? '私密' : (b.visibility==='shared' ? '公开' : '信');
+      t.appendChild(el('b', null, '《' + b.title + '》' + (b.status==='sealed' ? '（封了）' : '')));
+      t.appendChild(el('i', null, vis + '　·　' + b.chars + ' / ' + b.limit + ' 字　·　' + b.pages + ' 页'));
+      r.appendChild(t);
+      const c = el('div','ctl');
+      const inp = document.createElement('input');
+      inp.type='number'; inp.value = b.limit; inp.min = 200; inp.max = 20000; inp.style.width='90px';
+      const save = el('button','mini','改上限');
+      save.onclick = async () => {
+        const rr = await jpost(`${API}/ability`, {action:'desk_limit', book:b.slug, limit:Number(inp.value)});
+        if(rr.ok){ tip('上限改成 ' + inp.value); loadAbilities(); } else tip('没改成：' + (rr.error||''));
+      };
+      c.appendChild(inp); c.appendChild(save);
+      const look = el('button','mini','看看');
+      look.onclick = async () => {
+        const rr = await jget(`${API}/desk?book=${encodeURIComponent(b.slug)}`);
+        if(!rr.ok){ tip('读不出来：' + (rr.error||'')); return; }
+        const body = (rr.data.pages||[]).map(p => '## ' + p.at + '\n' + p.text).join('\n\n');
+        alert('《' + rr.data.title + '》\n\n' + body.slice(0, 4000));
+      };
+      c.appendChild(look);
+      r.appendChild(c); dw.appendChild(r);
+    });
+    dw.appendChild(el('p','hintline',
+      '本子在 ' + (dk.dir||'') + '　·　私密/公开都是每本一个上限（默认 ' + (dk.max_chars||6000) +
+      ' 字，硬顶 20000）；超过 ' + (dk.full_rewrite_max||9000) + ' 字就不许整篇重写，只能查找替换或续写。'));
+  }
+
+  loadBooks();
+  const foot = document.getElementById('abil-foot');
+  const pend = (d.pending_restart||[]).map(x=>x.id).join('、');
+  foot.textContent =
+    (pend ? '⚠ 有装卸还没生效，要重启 AstrBot：' + pend + '　·　' : '') +
+    (d.allow_install ? '' : '装卸锁着（L1-8 的 allow_install 打开才能装/卸）　·　') +
+    '能力包放这儿：' + d.packs_dir;
+}
+/* ───────────────────────── 书架 ───────────────────────── */
+async function loadBooks(){
+  const wrap = document.getElementById('abil-books');
+  if(!wrap) return;
+  const res = await jget(`${API}/books`);
+  wrap.innerHTML='';
+  if(!res.ok){ wrap.appendChild(el('p','hintline','书架读不出来：' + (res.error||''))); return; }
+  const d = res.data || {};
+  const books = d.books || [];
+  wrap.appendChild(el('h3', null, '书架：她能翻的书（' + books.length + ' 本）'));
+  if(!books.length) wrap.appendChild(el('p','hintline','书架是空的。'));
+
+  books.forEach(b => {
+    const r = el('div','row');
+    const t = el('div','txt');
+    t.appendChild(el('b', null, '《' + (b.title||b.slug) + '》'));
+    t.appendChild(el('i', null, (b.chapters||0) + ' 章　·　' + (b.chars||0) + ' 字' +
+      (b.format ? '　·　' + b.format : '') + '　·　' + b.slug));
+    r.appendChild(t);
+    const c = el('div','ctl');
+    const toc = el('button','mini','目录'); toc.onclick = () => showToc(b);
+    const rd = el('button','mini','读一章'); rd.onclick = () => readOne(b);
+    const reb = el('button','mini','重建章节');
+    reb.onclick = async () => {
+      const v = prompt('每章最多多少字？（默认 ' + (d.chapter_chars||6000) + '）', d.chapter_chars||6000);
+      if(v===null) return;
+      const rr = await jpost(`${API}/books/rebuild`, {slug:b.slug, chapter_chars:Number(v)});
+      if(rr.ok){ tip('重切成 ' + rr.chapters + ' 章'); loadBooks(); } else tip('没成：' + (rr.error||''));
+    };
+    const del = el('button','mini','删除');
+    del.onclick = async () => {
+      if(!confirm('把《' + (b.title||b.slug) + '》从书架上拿下来？（挪进回收站，能找回来）')) return;
+      const rr = await jpost(`${API}/books/delete`, {slug:b.slug});
+      if(rr.ok){ tip('拿下来了（在回收站）'); loadBooks(); } else tip('没成：' + (rr.error||''));
+    };
+    c.appendChild(toc); c.appendChild(rd); c.appendChild(reb); c.appendChild(del);
+    r.appendChild(c);
+    wrap.appendChild(r);
+  });
+
+  const line = el('p','hintline','');
+  line.textContent = '书架在 ' + (d.dir||'') + '　·　回收站 ' + (d.trash||0) + ' 份';
+  wrap.appendChild(line);
+  bookUploader();
+  if((d.trash||0) > 0){
+    const clr = el('button','mini','清空回收站');
+    clr.onclick = async () => {
+      if(!confirm('回收站里 ' + d.trash + ' 份，全清掉？（不能恢复）')) return;
+      const rr = await jpost(`${API}/books/trash-clear`, {keep:0});
+      if(rr.ok){ tip('清掉了 ' + (rr.removed||0) + ' 份'); loadBooks(); } else tip('没成：' + (rr.error||''));
+    };
+    wrap.appendChild(clr);
+  }
+}
+
+async function showToc(b){
+  const rr = await jget(`${API}/books/toc?slug=${encodeURIComponent(b.slug)}`);
+  if(!rr.ok){ tip('读不出目录：' + (rr.error||'')); return; }
+  const lines = (rr.data.chapters||[]).map(c => c.n + '. ' + c.title + '（' + c.chars + ' 字）');
+  alert('《' + (rr.data.title||b.slug) + '》\n\n' + lines.join('\n'));
+}
+
+async function readOne(b){
+  const total = b.chapters || 1;
+  const v = prompt('读第几章？（1 - ' + total + '）', 1);
+  if(v===null) return;
+  const n = Math.max(1, Math.min(total, Number(v)||1));
+  const rr = await jget(`${API}/books/read?slug=${encodeURIComponent(b.slug)}&n=${n}`);
+  if(!rr.ok){ tip('读不出来：' + (rr.error||'')); return; }
+  alert('《' + (rr.data.title||'') + '》 第 ' + rr.data.n + '/' + rr.data.total + ' 章\n\n' +
+        (rr.data.text||'').slice(0, 3000));
+}
+
+
+let _bookFile = null;
+let _bookPrev = null;
+
+function bookUploader(){
+  const wrap = document.getElementById('abil-books');
+  if(!wrap || document.getElementById('book-drop')) return;
+  const box = el('div','panel'); box.id='book-drop';
+  box.appendChild(el('b', null, '往书架上放一本新的'));
+  box.appendChild(el('div','hintline',
+    '把字幕或纯文本拖进来，或者点一下选文件。吃 .txt / .md，UTF-8、GBK 都行；' +
+    '一次拖一组也行——一份文件就是一本书里的一章；第一行若是文件名播报会去掉，「讲话人N」默认当作分段标记。'));
+
+  const zone = el('div','hintline','把文件拖到这儿');
+  zone.id = 'book-zone';
+  zone.style.cssText = 'border:2px dashed #c9d3e0;border-radius:10px;padding:20px;text-align:center;' +
+    'color:#8492a6;cursor:pointer;margin:8px 0;background:#fbfcfe';
+  box.appendChild(zone);
+
+  const input = document.createElement('input');
+  input.type='file'; input.multiple = true;
+  input.accept='.txt,.md,.markdown,.text'; input.style.display='none';
+  box.appendChild(input);
+  zone.onclick = () => input.click();
+  zone.ondragover = e => { e.preventDefault(); zone.style.background='#eef5ff'; };
+  zone.ondragleave = () => { zone.style.background='#fbfcfe'; };
+  zone.ondrop = e => {
+    e.preventDefault(); zone.style.background='#fbfcfe';
+    const fs = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
+    if(fs.length) pickBookFiles(fs); else tip('拖进来的不是文件');
+  };
+  input.onchange = () => { if(input.files && input.files.length) pickBookFiles(Array.from(input.files)); };
+
+  const opts = el('div','tools'); opts.style.marginTop='10px';
+  const keepLbl = el('label','hintline');
+  const keep = document.createElement('input'); keep.type='checkbox'; keep.id='book-keep';
+  keepLbl.appendChild(keep);
+  keepLbl.appendChild(document.createTextNode('保留「讲话人N」标签（默认去掉，当书读）'));
+  keep.onchange = repreview;
+  opts.appendChild(keepLbl);
+  const perLbl = el('label','hintline');
+  const per = document.createElement('input'); per.type='number'; per.id='book-per';
+  per.value = 2000; per.min = 800; per.max = 20000; per.style.width='90px';
+  perLbl.appendChild(document.createTextNode('每章约 '));
+  perLbl.appendChild(per);
+  perLbl.appendChild(document.createTextNode(' 字'));
+  per.onchange = repreview;
+  opts.appendChild(perLbl);
+  box.appendChild(opts);
+
+  const prev = el('p','hintline',''); prev.id='book-prev';
+  prev.textContent = '选好文件先看预览，确认了再放进书架。';
+  box.appendChild(prev);
+
+  const acts = el('div','tools');
+  const imp = el('button','primary','放进书架'); imp.id='book-import'; imp.disabled = true;
+  imp.onclick = () => importBook();
+  const reset = el('button',null,'换个文件');
+  reset.onclick = () => { _bookFile=null; _bookPrev=null; loadBooks(); };
+  acts.appendChild(imp); acts.appendChild(reset);
+  box.appendChild(acts);
+  wrap.appendChild(box);
+}
+
+async function pickBookFiles(files){
+  _bookFile = files; _bookPrev = null;
+  const prev = document.getElementById('book-prev');
+  const imp = document.getElementById('book-import');
+  const zone = document.getElementById('book-zone');
+  const total = files.reduce((a, f) => a + (f.size || 0), 0);
+  if(zone) zone.textContent = '看的是：' + files.length + ' 份（' + Math.round(total/1024) + ' KB）' +
+    (files.length > 1 ? '　·　按顺序一章一份' : '');
+  if(prev) prev.textContent = '正在看这' + (files.length>1?'几份':'份') + '文件……';
+  if(total > 12*1024*1024){ if(prev) prev.textContent = '文件太大了（加起来超过 12MB）'; return; }
+  const fd = new FormData();
+  files.forEach(f => fd.append('file', f, f.name));
+  fd.append('keep_speakers', (document.getElementById('book-keep')||{}).checked ? '1' : '0');
+  fd.append('chapter_chars', String((document.getElementById('book-per')||{}).value || 2000));
+  let r = {ok:false, error:'没读到'};
+  try { r = await (await fetch(`${API}/books/preview`, {method:'POST', body:fd})).json(); }
+  catch(e){ r = {ok:false, error:String(e)}; }
+  if(!r.ok){ if(prev) prev.textContent = '预览失败：' + (r.error||''); return; }
+  _bookPrev = r;
+  if(imp) imp.disabled = false;
+  const st = r.stats || {};
+  const head = (r.head||'').replace(/\n/g,' ');
+  const modeText = r.mode==='files' ? ('按文件分章（' + files.length + ' 份）')
+    : (r.mode==='heading' ? '按小标题分章' : '按字数分章');
+  if(prev){
+    prev.textContent = '洗干净后：' + modeText +
+      '　·　' + (r.chapters||[]).length + ' 章　·　' + (st.chars||0) + ' 字（原文 ' + (st.raw_chars||0) +
+      ' 字）　·　' + (st.paragraphs||0) + ' 段' +
+      (st.turns ? '　·　切出 ' + st.turns + ' 个说话轮次' : '') +
+      (st.speakers ? '　·　' + st.speakers + ' 个说话人' : '') +
+      ((st.skipped||[]).length ? '　·　跳过 ' + st.skipped.length + ' 份（空的或读不出）' : '') +
+      '\n会切成：' + (r.chapters||[]).slice(0,4).map(c => c.title + '（' + c.chars + ' 字）').join('、') +
+      ((r.chapters||[]).length > 4 ? ' …共 ' + r.chapters.length + ' 章' : '') +
+      (head ? ('\n开头是：' + head.slice(0, 120) + '…') : '');
+  }
+}
+
+async function repreview(){
+  if(!_bookFile) return;
+  await pickBookFiles(_bookFile);
+}
+
+async function importBook(){
+  if(!_bookFile){ tip('先选文件'); return; }
+  const many = Array.isArray(_bookFile) ? _bookFile.length > 1 : false;
+  const sug = (_bookPrev && (_bookPrev.suggest_slug || '')) || '';
+  const slug = prompt('给它一个英文 id（只能用字母数字和 - _）', sug);
+  if(slug===null) return;
+  const fallback = many ? '新书' : (Array.isArray(_bookFile) ? _bookFile[0].name : _bookFile.name);
+  const title = prompt('书名（显示用）', (_bookPrev && _bookPrev.suggest_title) || fallback);
+  if(title===null) return;
+  const fd = new FormData();
+  (Array.isArray(_bookFile) ? _bookFile : [_bookFile]).forEach(f => fd.append('file', f, f.name));
+  fd.append('slug', String(slug||'').trim());
+  fd.append('title', String(title||'').trim());
+  fd.append('keep_speakers', (document.getElementById('book-keep')||{}).checked ? '1' : '0');
+  fd.append('chapter_chars', String((document.getElementById('book-per')||{}).value || 2000));
+  let r = {ok:false, error:'没读到'};
+  try { r = await (await fetch(`${API}/books/import`, {method:'POST', body:fd})).json(); }
+  catch(e){ r = {ok:false, error:String(e)}; }
+  if(!r.ok){ tip('没放进去：' + (r.error||'')); return; }
+  tip('放进去了：' + r.chapters + ' 章 ' + r.chars + ' 字');
+  _bookFile = null; _bookPrev = null;
+  loadBooks();
+}
+/* ───────────────────────── 本体 ───────────────────────── */
+function selfSection(){
+  const sec = el('section'); sec.id='self';
+  sec.appendChild(el('h2', null, '本体'));
+  sec.appendChild(el('p','desc','这一页是「她是谁」。人设卡决定她怎么说话；称呼表决定她怎么叫人；自我卡是她自己写的，只在新会话第一次醒来读一次。'));
+
+  const p1 = el('div','panel');
+  const h4 = el('h4', null, '人设卡');
+  const chars = el('span','hintline', '');
+  h4.appendChild(chars);
+  p1.appendChild(h4);
+  const ta = document.createElement('textarea'); ta.id='personaBox'; ta.spellcheck=false;
+  p1.appendChild(ta);
+  const bar = el('div','tools'); bar.style.marginTop='10px';
+  const saveBtn = el('button','primary','保存人设'); saveBtn.onclick = savePersona;
+  const reloadBtn = el('button',null,'还原'); reloadBtn.onclick = loadSelf;
+  bar.appendChild(saveBtn); bar.appendChild(reloadBtn);
+  bar.appendChild(el('span','hintline','保存后立刻生效 —— 下一句话就是新的人设。'));
+  p1.appendChild(bar);
+  sec.appendChild(p1);
+
+  const p2 = el('div','panel');
+  p2.appendChild(el('h4', null, '称呼表（她怎么叫人）'));
+  const addrBox = el('div'); addrBox.id='addrBox';
+  p2.appendChild(addrBox);
+  const ab = el('div','tools'); ab.style.marginTop='6px';
+  const q1 = document.createElement('input'); q1.type='text'; q1.placeholder='QQ 号'; q1.id='addrQq'; q1.style.width='140px';
+  const q2 = document.createElement('input'); q2.type='text'; q2.placeholder='怎么叫（例：主人）'; q2.id='addrLabel';
+  const q3 = el('button',null,'加上'); q3.onclick = addAddr;
+  ab.appendChild(q1); ab.appendChild(q2); ab.appendChild(q3);
+  p2.appendChild(ab);
+  sec.appendChild(p2);
+
+  const p3 = el('div','panel');
+  p3.appendChild(el('h4', null, '自我卡（她对自己的叙述）'));
+  const noteBox = el('div'); noteBox.id='noteBox';
+  p3.appendChild(noteBox);
+  const nb = el('div','tools'); nb.style.marginTop='6px';
+  const n1 = document.createElement('input'); n1.type='text'; n1.placeholder='她想对自己说的一句话'; n1.id='noteText'; n1.style.width='360px';
+  const n2 = el('button',null,'记下'); n2.onclick = addNote;
+  nb.appendChild(n1); nb.appendChild(n2);
+  p3.appendChild(nb);
+  sec.appendChild(p3);
+  return sec;
+}
+
+async function loadSelf(){
+  const r = await jget(`${API}/persona`);
+  if(!r.ok) return;
+  const d = r.data;
+  document.getElementById('personaBox').value = d.body || '';
+  const head = document.querySelector('#self .panel h4 span');
+  if(head) head.textContent = '　' + (d.chars||0) + ' 字';
+
+  const ab = document.getElementById('addrBox'); ab.innerHTML='';
+  const keys = Object.keys(d.addresses || {});
+  if(!keys.length) ab.appendChild(el('div','hintline','还没配过。这里加一条，她叫人的时候就按这个来。'));
+  keys.forEach(qq => {
+    const line = el('div','kv');
+    line.appendChild(el('b', null, qq));
+    line.appendChild(el('span', null, d.addresses[qq]));
+    const del = el('button','mini danger','删'); del.onclick = async () => { await jpost(`${API}/addr`, {qq, label:''}); loadSelf(); };
+    line.appendChild(del);
+    ab.appendChild(line);
+  });
+
+  const nb = document.getElementById('noteBox'); nb.innerHTML='';
+  const notes = d.notes || [];
+  if(!notes.length) nb.appendChild(el('div','hintline','还空着 —— 这一栏要她自己写，你替她写就不算她自己的了。'));
+  notes.forEach(n => {
+    const line = el('div','kv');
+    line.appendChild(el('b', null, fmtDay(n.created_at)));
+    line.appendChild(el('span', null, n.text));
+    nb.appendChild(line);
+  });
+}
+
+async function savePersona(){
+  const body = document.getElementById('personaBox').value;
+  if(!body.trim()){ tip('人设不能是空的'); return; }
+  const r = await jpost(`${API}/persona`, {body});
+  if(r.ok){ tip('人设已保存，' + r.data.chars + ' 字'); loadSelf(); }
+  else tip('没存上：' + (r.error||''));
+}
+
+async function addAddr(){
+  const qq = document.getElementById('addrQq').value.trim();
+  const label = document.getElementById('addrLabel').value.trim();
+  if(!qq || !label){ tip('QQ 号和叫法都要填'); return; }
+  const r = await jpost(`${API}/addr`, {qq, label});
+  if(r.ok){ document.getElementById('addrQq').value=''; document.getElementById('addrLabel').value=''; tip('已保存'); loadSelf(); }
+  else tip('没存上：' + (r.error||''));
+}
+
+async function addNote(){
+  const t = document.getElementById('noteText').value.trim();
+  if(!t){ tip('写点什么再点记下'); return; }
+  const r = await jpost(`${API}/note`, {text:t});
+  if(r.ok){ document.getElementById('noteText').value=''; tip('记下了'); loadSelf(); }
+  else tip('没存上：' + (r.error||''));
+}
+
+/* ---------------------------------------------------------------- 口令 */
+function thinkSection(){
+  const sec = el('section'); sec.id = 'think';
+  const h2 = el('h2', null, '思路');
+  h2.appendChild(el('code', null, 'think.jsonl'));
+  sec.appendChild(h2);
+  sec.appendChild(el('p','desc','她每一轮"怎么想的"。QQ 上只能看到她说出来的话，看不到这一段 —— 所以单独记在这儿，只给人看，不给模型看。'));
+
+  const bar = el('div','bar');
+  const info = el('span','desc','');
+  const b1 = el('button','mini','刷新'); b1.onclick = () => loadThink();
+  const b2 = el('button','mini','清空'); b2.onclick = async () => {
+    if (!confirm('清空思路记录？只删这个日志，不影响她的记忆。')) return;
+    const r = await jpost(`${API}/think-clear`, {});
+    if (r.ok) { await loadThink(); }
+  };
+  bar.appendChild(b1); bar.appendChild(b2); bar.appendChild(info);
+  sec.appendChild(bar);
+
+  const box = el('div'); box.id = 'think-box';
+  box.appendChild(el('p','desc','还没记录 —— 她下次说话后这里就会出现。'));
+  sec.appendChild(box);
+  sec.appendChild(el('p','desc','文件在 <数据根>/data/think.jsonl；超过 8MB 自动轮转成 .1；任何时候删掉都不影响她。'));
+  sec._info = info;
+  return sec;
+}
+
+async function loadThink(){
+  const sec = document.getElementById('think');
+  const box = document.getElementById('think-box');
+  const info = sec && sec._info;
+  if (!box) return;
+  const j = await jget(`${API}/think?n=30`);
+  if (!j.ok) { box.innerHTML = ''; box.appendChild(el('p','desc','读不到：' + (j.error || '?'))); return; }
+  const d = j.data, rows = d.rows || [];
+  if (info) info.textContent = `共 ${rows.length} 条 · 文件 ${((d.stats && d.stats.bytes) || 0)/1024 < 1 ? '<1' : Math.round(((d.stats && d.stats.bytes) || 0)/1024)} KB`;
+  box.innerHTML = '';
+  if (!rows.length) { box.appendChild(el('p','desc','还没记录 —— 她下次说话后这里就会出现。')); return; }
+  rows.slice().reverse().forEach(r => {
+    const card = el('div','think-card');
+    const head = el('div','txt');
+    const t = el('b', null, r.time); t.style.cssText='font:13px inherit';
+    head.appendChild(t);
+    head.appendChild(el('i', null, '  ' + (r.where || '') + ' · ' + (r.model || '') + ' · ' + r.chars + ' 字'));
+    card.appendChild(head);
+    if (r.ask) {
+      const a = el('div','think-ask');
+      a.textContent = (r.who || '对方') + '：' + r.ask;
+      card.appendChild(a);
+    }
+    if (r.before && r.before.length) {
+      const ctx = el('div','think-ctx');
+      ctx.textContent = '之前几条：' + r.before.join(' ｜ ');
+      card.appendChild(ctx);
+    }
+    if (r.zh) {
+      const z = el('div','think-zh');
+      z.textContent = r.zh;
+      card.appendChild(z);
+    }
+    const pre = el('pre', 'think-body');
+    pre.textContent = r.text || '';
+    card.appendChild(pre);
+    if (r.reply) {
+      const q = el('div','think-reply');
+      q.textContent = '她说：' + r.reply;
+      card.appendChild(q);
+    }
+    box.appendChild(card);
+  });
+}
+
+function codesSection(){
+  const box = el('section','card'); box.id = 'codes';
+  const b = el('b', null, '口令'); b.style.cssText = 'display:block;font:14px inherit';
+  box.appendChild(b);
+  const d = el('div', null, '你在这边发一串数字，她在 QQ 里直接照做：开关功能、同意出门。命中的那句话不会送进模型，也不花钱。');
+  d.style.cssText = 'font:12.5px inherit;color:#8896a8;margin:4px 0 10px';
+  box.appendChild(d);
+
+  const flags = el('div','bar');
+  const f1 = el('label','ck'); const c1 = el('input'); c1.type='checkbox';
+  f1.appendChild(c1); f1.appendChild(el('span', null, '启用口令'));
+  const f2 = el('label','ck'); const c2 = el('input'); c2.type='checkbox';
+  f2.appendChild(c2); f2.appendChild(el('span', null, '群里也认'));
+  const f3 = el('label','ck'); const c3 = el('input'); c3.type='checkbox';
+  f3.appendChild(c3); f3.appendChild(el('span', null, '群里也回一句'));
+  flags.appendChild(f1); flags.appendChild(f2); flags.appendChild(f3);
+  box.appendChild(flags);
+
+  const hint = el('div','desc','只有主人发才算；别人发同样的数字，当普通消息处理。');
+  box.appendChild(hint);
+
+  const list = el('div');
+  box.appendChild(list);
+
+  const add = el('div','bar'); add.style.marginTop = '14px';
+  const ci = el('input'); ci.placeholder = '暗号（例：521521）'; ci.style.width = '150px';
+  const sw = el('select'); sw.style.maxWidth = '420px';
+  const mi = el('select'); mi.style.width = '150px';
+  [['on','打开'],['off','关闭'],['toggle','反一下'],['minutes','打开 N 分钟'],['emit','发事件']].forEach(pair => {
+    const o = el('option', null, pair[1]); o.value = pair[0]; mi.appendChild(o);
+  });
+  const mi2 = el('input'); mi2.type='number'; mi2.value='30'; mi2.style.width='70px'; mi2.style.display='none';
+  const ei = el('input'); ei.placeholder='事件名（例：bili.trip.approve）'; ei.style.display='none'; ei.style.width='260px';
+  const ni = el('input'); ni.placeholder='备注（她回你时用这句）'; ni.style.width='200px';
+  const btn = el('button','primary','加上');
+  add.appendChild(ci); add.appendChild(sw); add.appendChild(mi); add.appendChild(mi2); add.appendChild(ei); add.appendChild(ni); add.appendChild(btn);
+  box.appendChild(add);
+
+  btn.onclick = async () => {
+    const mode = mi.value;
+    const body = { action:'add', code: ci.value.trim(), mode, note: ni.value.trim() };
+    if (mode === 'emit') body.topic = ei.value.trim();
+    else if (mode === 'minutes') { body.plugin = sw.value.split('|')[0]; body.path = sw.value.split('|')[1]; body.minutes = Number(mi2.value) || 30; }
+    else { body.plugin = sw.value.split('|')[0]; body.path = sw.value.split('|')[1]; }
+    const r = await jpost('api/codes', body);
+    if(r.ok){ ci.value=''; ni.value=''; tip('加上了'); renderCodes(r.data); }
+    else tip(r.error || '没加上');
+  };
+
+  const onFlags = async () => {
+    const r = await jpost('api/codes', { action:'flags', enabled: c1.checked, in_group: c2.checked, reply_group: c3.checked });
+    if(r.ok){ tip('记下了'); renderCodes(r.data); } else tip(r.error||'没改成');
+  };
+  c1.onchange = onFlags; c2.onchange = onFlags; c3.onchange = onFlags;
+
+  mi.onchange = () => {
+    mi2.style.display = mi.value === 'minutes' ? '' : 'none';
+    ei.style.display = mi.value === 'emit' ? '' : 'none';
+    sw.style.display = mi.value === 'emit' ? 'none' : '';
+  };
+
+  function renderCodes(data){
+    c1.checked = !!data.enabled; c2.checked = !!data.in_group; c3.checked = !!data.reply_group;
+    hint.textContent = '只有主人（' + (data.owner || '—') + '）发才算；别人发同样的数字，当普通消息处理。';
+    sw.innerHTML = '';
+    (data.switches || []).forEach(item => {
+      const o = el('option', null, item.label); o.value = item.plugin + '|' + item.path; sw.appendChild(o);
+    });
+    list.innerHTML = '';
+    const items = data.items || [];
+    if(!items.length){
+      list.appendChild(el('div','desc','还没有口令。上面填一串数字、选一个开关，点「加上」就行。'));
+      return;
+    }
+    const tbl = el('table','tbl');
+    const hd = el('tr');
+    ['口令','类型','作用','备注',''].forEach(txt => hd.appendChild(el('th', null, txt)));
+    tbl.appendChild(hd);
+    const kindMap = { set:'开关', toggle:'反一下', on_for:'限时', emit:'发事件' };
+    items.forEach(it => {
+      const tr = el('tr');
+      tr.appendChild(el('td', null, it.code));
+      tr.appendChild(el('td', null, (kindMap[it.kind] || it.kind || '?') + (it.kind === 'set' ? (it.value ? '·开' : '·关') : '')));
+      tr.appendChild(el('td', null, it.kind === 'emit' ? (it.topic || '') : (it.path || '—')));
+      tr.appendChild(el('td', null, it.note || '—'));
+      const td = el('td');
+      const del = el('button','mini','删');
+      del.onclick = async () => {
+        if(!confirm('删掉口令 ' + it.code + '？')) return;
+        const r = await jpost('api/codes', { action:'del', code: it.code });
+        if(r.ok){ tip('删了'); renderCodes(r.data); } else tip(r.error||'没删成');
+      };
+      td.appendChild(del); tr.appendChild(td);
+      tbl.appendChild(tr);
+    });
+    list.appendChild(tbl);
+  }
+
+  box._renderCodes = renderCodes;
+  return box;
+}
+
+async function loadCodes(){
+  const r = await jget('api/codes');
+  const box = document.getElementById('codes');
+  if(r.ok && box && box._renderCodes) box._renderCodes(r.data);
+}
+
+function bootSection(){
+  const sec = el('section'); sec.id='boot';
+  sec.appendChild(el('h2', null, '启动'));
+  sec.appendChild(el('p','desc','房子的地基有三样：AstrBot（发这个页面的）、SnowLuma（连 QQ 的那层）、她自己的 QQ 号。页面里能管后两样；AstrBot 没起来的时候这个页面本身也不存在 —— 那种情况点桌面上的「一键启动」。'));
+  const box = el('div','card'); box.id='bootCard'; box.style.margin='0 0 12px';
+  sec.appendChild(box);
+  const bar = el('div','tools');
+  const b1 = el('button','mini','拉起 SnowLuma');
+  b1.onclick = () => bootAct('snowluma');
+  const b2 = el('button','mini','查一下她的 QQ');
+  b2.onclick = () => bootAct('check');
+  const b3 = el('button','mini','重启 AstrBot');
+  b3.onclick = () => bootAct('restart');
+  bar.appendChild(b1); bar.appendChild(b2); bar.appendChild(b3);
+  sec.appendChild(bar);
+  const note = el('div','tip');
+  note.textContent = '「重启 AstrBot」会断 20 秒左右，页面自己会刷回来；QQ 号必须你本人登录，程序替不了。';
+  sec.appendChild(note);
+  return sec;
+}
+
+function bootRow(title, ok, detail){
+  const r = el('div','row');
+  const t = el('div','txt');
+  const b = el('b', null, title);
+  b.style.color = ok ? '#2e7d32' : '#c0392b';
+  t.appendChild(b);
+  const i = el('i', null, detail || '');
+  t.appendChild(i);
+  r.appendChild(t);
+  const ctl = el('div','ctl');
+  ctl.appendChild(el('span', null, ok ? '在跑' : '没起来'));
+  r.appendChild(ctl);
+  return r;
+}
+
+async function loadBoot(){
+  const r = await jget(`${API}/boot`);
+  if(!r.ok) return;
+  const d = r.data || {};
+  const box = document.getElementById('bootCard');
+  if(!box) return;
+  box.innerHTML = '';
+  box.appendChild(bootRow('AstrBot（这个页面）', true, `面板 6185 ${d.host && d.host.port_6185 ? '在听' : '没听'} · 管理器 6197`));
+  const sl = d.snowluma || {};
+  box.appendChild(bootRow('SnowLuma', !!sl.up, sl.up ? '5099 在听' + (sl.onebot ? ' · QQ 通道 3000/3001 通' : ' · QQ 通道还没通（号没登）') : '没跑，点下面「拉起 SnowLuma」'));
+  const qq = d.qq || {};
+  box.appendChild(bootRow('她自己的 QQ（' + (d.bot_qq || '') + '）', !!qq.online, qq.online ? ('已登录：' + (qq.nickname || '') + ' / ' + (qq.user_id || '')) : (qq.why || '没登')));
+}
+
+async function bootAct(action){
+  if(action === 'restart'){
+    if(!confirm('真的重启 AstrBot？会断 20 秒左右。')) return;
+  }
+  tip(action === 'restart' ? '正在重启……' : '处理中……');
+  const r = await jpost(`${API}/boot`, {action});
+  if(!r.ok){ tip('没成：' + (r.error||'')); return; }
+  const d = r.data || {};
+  if(action === 'snowluma') tip(d.ok ? 'SnowLuma 起来了' : ('没起来：' + (d.why||'')));
+  else if(action === 'restart') tip('已交给重启脚本，20 秒后刷新这一页');
+  else tip('查过了');
+  setTimeout(()=>{ if(action === 'restart') location.reload(); else loadBoot(); }, action === 'restart' ? 22000 : 600);
+}
+
+function capacityCard(){
+  const box = el('div','card'); box.id='capCard'; box.style.margin='0 0 14px';
+  const b0 = el('b', null, '容量与淘汰');
+  b0.style.cssText = 'display:block;font:14px inherit';
+  box.appendChild(b0);
+  const d0 = el('div', null, '快满了也不静默丢东西：先提名，你点头才动。最初 / 置顶 / 重要记忆永远不提名。');
+  d0.style.cssText = 'font:12.5px inherit;color:#8896a8;margin:4px 0 10px';
+  box.appendChild(d0);
+  const line = el('div'); line.id='capLine'; line.style.cssText='margin:8px 0 10px;font:13px inherit;color:#42546b';
+  box.appendChild(line);
+  const list = el('div'); list.id='capList';
+  box.appendChild(list);
+  const bar = el('div','tools'); bar.id='capBar'; bar.style.marginTop='10px';
+  box.appendChild(bar);
+  return box;
+}
+
+let CAP = null;
+
+async function loadCapacity(){
+  const r = await jget(`${API}/capacity`);
+  if(!r.ok) return;
+  CAP = r.data;
+  const c = CAP.capacity || {};
+  const line = document.getElementById('capLine');
+  const pct = c.max_records ? Math.round((c.total / c.max_records) * 100) : 0;
+  const tone = c.level === 'full' ? '#c0392b' : c.level === 'high' ? '#d35400' : c.level === 'warn' ? '#b7950b' : '#5b7f4f';
+  line.innerHTML = '';
+  line.appendChild(el('b', null, `共 ${c.total} 条`));
+  line.appendChild(document.createTextNode(
+    `　上限 ${c.max_records || '不限'} 条（${pct}%）　平均 ${c.avg_chars} 字　估 ${c.est_chars} 字`));
+  const tag = el('b', null, c.level === 'ok' ? '还很空' : c.level === 'warn' ? '到八成' : c.level === 'high' ? '到九成' : '满了');
+  tag.style.color = tone; tag.style.marginLeft = '8px';
+  line.appendChild(tag);
+
+  const list = document.getElementById('capList');
+  list.innerHTML = '';
+  const bar0 = document.getElementById('capBar');
+  if (bar0) bar0.innerHTML = '';
+  if (c.level === 'ok') {
+    const okTip = el('div','tip');
+    okTip.textContent = '离上限还很远，先不提名。到八成会在这里列出来。';
+    list.appendChild(okTip);
+    return;
+  }
+  const plan = CAP.plan || {};
+  if (plan.need > 0) {
+    const warn = el('div','tip');
+    warn.textContent = `按九成算，至少要退 ${plan.need} 条。下面是按留存分从低到高挑的，勾了才动。`;
+    list.appendChild(warn);
+  }
+  const cands = CAP.candidates || [];
+  if (!cands.length) {
+    const empty = el('div','tip');
+    empty.textContent = '没有可以自动退的（剩下的都是最初 / 置顶 / 重要记忆）。要腾地方只能手动合并。';
+    list.appendChild(empty);
+  } else {
+    cands.forEach(c2 => {
+      const row2 = el('div','row');
+      const t = el('div','txt');
+      const cb = document.createElement('input'); cb.type='checkbox'; cb.value=c2.id; cb.className='capPick';
+      cb.style.marginRight='8px';
+      t.appendChild(cb);
+      t.appendChild(el('span', null, c2.text));
+      t.appendChild(el('i', null, `${c2.clarity} · 重要度 ${c2.importance} · 留存 ${c2.score}`));
+      row2.appendChild(t);
+      list.appendChild(row2);
+    });
+  }
+
+  const bar = document.getElementById('capBar');
+  bar.innerHTML = '';
+  const b1 = el('button','mini', () => '淘汰选中的');
+  b1.onclick = () => bulk('evict');
+  const b2 = el('button','mini', () => '合并选中的');
+  b2.onclick = () => bulk('merge');
+  bar.appendChild(b1); bar.appendChild(b2);
+}
+
+async function bulk(action){
+  const ids = Array.from(document.querySelectorAll('.capPick:checked')).map(x=>x.value);
+  if(!ids.length){ tip('先勾几条'); return; }
+  if(action === 'evict'){
+    if(!confirm(`真的让这 ${ids.length} 条被忘掉？（软删，原文还在全量流水里）`)) return;
+  } else if(ids.length < 2){ tip('合并至少要两条'); return; }
+  const r = await jpost(`${API}/memory-bulk`, {action, ids});
+  if(r.ok){ tip(action === 'evict' ? `退了 ${ids.length} 条` : '合并好了'); loadCapacity(); loadMem(); }
+  else tip('没成：' + (r.error||''));
+}
+
+function privacyCard(){
+  const box = el('div','card'); box.style.margin='0 0 14px';
+  const b1 = el('b', null, '场景隔离');
+  b1.style.cssText = 'display:block;font:14px inherit';
+  box.appendChild(b1);
+  const d1 = el('div', null, '她记得的事，只在她记得的那个场景里提。改完立刻生效，不用重启。');
+  d1.style.cssText = 'font:12.5px inherit;color:#8896a8;margin:4px 0 10px';
+  box.appendChild(d1);
+  const defs = [
+    ['enabled','总闸','关掉就是老行为：所有记忆都能到所有地方'],
+    ['private_in_group','私聊的事可以进群','默认关：私聊说的，群里不提'],
+    ['cross_group','A 群的事可以带进 B 群','默认关：每个群各自记各自的'],
+    ['group_in_private','群里的事可以在私聊里提','默认关：群里的不外传']
+  ];
+  defs.forEach(([k,label,hint]) => {
+    const r = el('div','row');
+    const t = el('div','txt');
+    t.appendChild(el('b', null, label));
+    t.appendChild(el('i', null, k + ' \u3000\u00b7\u3000' + hint));
+    r.appendChild(t);
+    const ctl = el('div','ctl');
+    const sw = el('label','sw');
+    const inp = document.createElement('input');
+    inp.type='checkbox'; inp.id='iso_'+k;
+    inp.onchange = () => savePrivacy(k, inp.checked);
+    sw.appendChild(inp); sw.appendChild(el('span'));
+    ctl.appendChild(sw); r.appendChild(ctl);
+    box.appendChild(r);
+  });
+  return box;
+}
+
+async function loadPrivacy(){
+  const r = await jget(`${API}/privacy`);
+  if(!r.ok) return;
+  Object.entries(r.data || {}).forEach(([k,v]) => {
+    const n = document.getElementById('iso_'+k); if(n) n.checked = !!v;
+  });
+}
+
+async function savePrivacy(k, v){
+  const r = await jpost(`${API}/privacy`, {key:k, value:v});
+  tip(r.ok ? '已保存' : ('没存上：' + (r.error||'')));
+}
+
+/* ───────────────────────── 记忆 ───────────────────────── */
+function memorySection(){
+  const sec = el('section'); sec.id='memory';
+  sec.appendChild(el('h2', null, '记忆'));
+  sec.appendChild(el('p','desc','她记得的每一件事。清晰度会自己往下掉（每天最多掉一档），重要度是记下来那一刻算的分。置顶的那几条不参与压缩。'));
+
+  const stats = el('div','chips'); stats.id='memStats'; stats.style.margin='0 0 12px';
+  sec.appendChild(stats);
+
+  sec.appendChild(capacityCard());
+  sec.appendChild(privacyCard());
+
+  const tool = el('div','tools');
+  const q = document.createElement('input'); q.type='search'; q.id='memQ'; q.placeholder='搜一句话、一个词……';
+  const sel = document.createElement('select'); sel.id='memClarity';
+  sel.style.cssText='padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:13px inherit';
+  [['','全部清晰度'],['vivid','vivid 清晰'],['clear','clear 清楚'],['fuzzy','fuzzy 模糊'],['trace','trace 只剩印象']].forEach(([v,t])=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o);
+  });
+  const go = el('button','primary','查'); go.onclick = loadMem;
+  q.addEventListener('keydown', e => { if(e.key==='Enter') loadMem(); });
+  sel.addEventListener('change', loadMem);
+  tool.appendChild(q); tool.appendChild(sel); tool.appendChild(go);
+  sec.appendChild(tool);
+
+  const add = el('div','tools');
+  const t1 = document.createElement('input'); t1.type='text'; t1.id='memNew'; t1.placeholder='我替她记一件事……'; t1.style.width='360px';
+  const t2 = document.createElement('input'); t2.type='number'; t2.id='memImp'; t2.placeholder='重要度'; t2.style.width='100px';
+  const addBtn = el('button',null,'记下来'); addBtn.onclick = addMem;
+  add.appendChild(t1); add.appendChild(t2); add.appendChild(addBtn);
+  add.appendChild(el('span','hintline','重要度留空就自动算（主人私聊 +42、群里 +32、第一次 +30…）'));
+  sec.appendChild(add);
+
+  const box = el('div'); box.id='memList';
+  sec.appendChild(box);
+
+  const inj = el('div','panel'); inj.style.marginTop='14px';
+  inj.appendChild(el('h4', null, '她现在看到的是这些（真实注入预览）'));
+  const bar = el('div','tools');
+  const b1 = el('button','mini','QQ 那份'); b1.onclick = ()=>showInject('qq');
+  const b2 = el('button','mini','B站 那份'); b2.onclick = ()=>showInject('bili');
+  bar.appendChild(b1); bar.appendChild(b2);
+  inj.appendChild(bar);
+  const pre = el('div','pre'); pre.id='injectPre'; pre.textContent='点上面两个按钮看';
+  inj.appendChild(pre);
+  sec.appendChild(inj);
+  return sec;
+}
+
+let INJECT = null;
+
+async function loadMem(){
+  const q = (document.getElementById('memQ')||{}).value || '';
+  const c = (document.getElementById('memClarity')||{}).value || '';
+  const r = await jget(`${API}/memories?q=${encodeURIComponent(q)}&clarity=${encodeURIComponent(c)}&limit=80`);
+  if(!r.ok) return;
+  const st = r.data.stats || {};
+  const bar = document.getElementById('memStats'); bar.innerHTML='';
+  bar.appendChild(chip('总共', (st.total||0) + ' 条'));
+  bar.appendChild(chip('最初', st.first||0));
+  const cl = st.clarity || {};
+  bar.appendChild(chip('vivid', cl.vivid||0));
+  bar.appendChild(chip('clear', cl.clear||0));
+  bar.appendChild(chip('fuzzy', cl.fuzzy||0));
+  bar.appendChild(chip('trace', cl.trace||0));
+  bar.appendChild(chip('筛出', r.data.total + ' 条'));
+
+  const box = document.getElementById('memList'); box.innerHTML='';
+  if(!r.data.rows.length){ box.appendChild(el('div','hintline','没有匹配的。')); return; }
+  r.data.rows.forEach(rec => box.appendChild(memRow(rec)));
+}
+
+function memRow(rec){
+  const row = el('div','memrow');
+  const meta = el('div','meta');
+  meta.appendChild(el('div', null, fmtDay(rec.created_at)));
+  meta.appendChild(el('span','badge ' + rec.clarity, rec.clarity));
+  meta.appendChild(el('div', null, '重要度 ' + rec.importance + ' · ' + rec.platform + (rec.is_self ? ' · 她自己' : '')));
+  if(rec.recall_count) meta.appendChild(el('div', null, '被想起 ' + rec.recall_count + ' 次'));
+  if(rec.is_first) meta.appendChild(el('div', null, '★ 最初'));
+  row.appendChild(meta);
+
+  const body = el('div','body');
+  if(rec.title) body.appendChild(el('div', null, rec.title));
+  const txt = (rec.text||'').replace(/\s+/g,' ');
+  body.appendChild(el('div', null, txt.length>180 ? txt.slice(0,180)+'…' : txt));
+  if(rec.kind) body.appendChild(el('em', null, '  ' + rec.kind));
+  row.appendChild(body);
+
+  const ops = el('div','ops');
+  const pin = el('button','mini', rec.pinned ? '取消置顶' : '置顶');
+  pin.onclick = () => memAct('pin', rec.id, !rec.pinned);
+  const del = el('button','mini danger','忘掉');
+  del.onclick = () => { if(confirm('真的让她忘掉这一条？')) memAct('forget', rec.id); };
+  ops.appendChild(pin); ops.appendChild(del);
+  row.appendChild(ops);
+  return row;
+}
+
+async function memAct(action, id, pinned){
+  const r = await jpost(`${API}/memory`, {action, id, pinned});
+  if(r.ok){ tip(action==='forget' ? '已忘掉' : '已改'); loadMem(); load(); }
+  else tip('没成功：' + (r.error||''));
+}
+
+async function addMem(){
+  const text = document.getElementById('memNew').value.trim();
+  const impRaw = document.getElementById('memImp').value.trim();
+  if(!text){ tip('写点什么'); return; }
+  const body = {action:'add', text};
+  if(impRaw) body.importance = parseInt(impRaw, 10);
+  const r = await jpost(`${API}/memory`, body);
+  if(r.ok){ document.getElementById('memNew').value=''; document.getElementById('memImp').value=''; tip('记下了'); loadMem(); load(); }
+  else tip('没记上：' + (r.error||''));
+}
+
+async function loadInject(){
+  const r = await jget(`${API}/inject`);
+  if(r.ok) INJECT = r.data;
+}
+function showInject(which){
+  const pre = document.getElementById('injectPre');
+  if(!INJECT){ pre.textContent = '还没拿到，再点一次'; return; }
+  const d = INJECT[which] || {};
+  const head = `【${which === 'qq' ? 'QQ' : 'B站'} 那份】${d.chars} / ${d.budget} 字` + (d.over ? '  ⚠ 超预算' : '  ✓ 在预算内');
+  pre.textContent = head + '\n' + '-'.repeat(40) + '\n' + (d.text || '（空）');
+}
+
+async function act(name){
+  const out = document.getElementById('out');
+  out.style.display='block'; out.textContent='跑着呢……';
+  const res = await jpost(`${API}/act`, {name});
+  out.textContent = JSON.stringify(res.ok ? res.data : res, null, 2);
+  if(name !== 'health') load();
+}
+
+load();
+setInterval(()=>{ if(!document.hidden) load(); }, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "littlefish-kernel"
+version = "0.1.7"
+description = "角色内核：人设卡 / 记忆卡 / 自我卡 / 二级开关 / 调度 / 预算 / 事件总线 / 疲劳推演"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiosqlite>=0.21.0",
+    "apscheduler>=3.11.0",
+]
+
+[project.optional-dependencies]
+# 只有管理台（6197）需要；不带它也能跑内核 + 插件
+console = ["aiohttp>=3.9"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["littlefish_kernel*"]
+
+[tool.setuptools.package-data]
+littlefish_kernel = ["web/*.html"]

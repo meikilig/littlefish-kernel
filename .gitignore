@@ -1,0 +1,47 @@
+# 统一按 LF 存储，避免 Windows 上 CRLF 反复改动
+* text=auto eol=lf
+
+# 运行数据 —— 里面是人设、记忆、日记、聊天记录，一律不入库
+data/
+littlefish/
+# 本地配置（可能含 QQ 号、令牌、账号凭据）
+config.json
+*.local.json
+credentials*.json
+.onebot_token
+console.token
+# 备份 / 快照 / 回收站
+backups/
+snapshots/
+archive/
+_removed/
+# 日志与转储
+logs/
+*.log
+*.jsonl
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+# 本地工具与大件（需要时自己装，不随仓库走）
+tools/ffmpeg/
+tools/books-src/
+node_modules/
